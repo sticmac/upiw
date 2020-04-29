@@ -1,11 +1,48 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Events;
+using NaughtyAttributes;
 
-[System.Serializable]
-public class FloatEvent : UnityEvent<float> {}
+[Serializable]
+public enum RequiredState {
+    Any,
+    Started,
+    Performed,
+    Canceled
+}
+
+[Serializable]
+public struct EventEntry {
+
+    public RequiredState requiredState;
+    public string actionName;
+
+    public UnityEventBase AssignedEvent {
+        get => _assignedEvent;
+    }
+
+    public EventArgumentType ArgumentType {
+        get => _eventArgumentType;
+        set {
+            _eventArgumentType = value;
+            _assignedEvent = EventFactory.GetEventWithArgumentType(_eventArgumentType); 
+        }
+    }
+
+    [SerializeField] EventArgumentType _eventArgumentType;
+    [SerializeField] UnityEvent _assignedEvent;
+
+    public EventEntry(string actionName, RequiredState requiredState, EventArgumentType eventArgumentType) {
+        this.requiredState = requiredState;
+        this.actionName = actionName;
+        this._eventArgumentType = eventArgumentType;
+        this._assignedEvent = EventFactory.GetEventWithArgumentType(eventArgumentType);
+        ArgumentType = eventArgumentType;
+    }
+}
 
 public class InputHandler : MonoBehaviour
 {
@@ -16,6 +53,8 @@ public class InputHandler : MonoBehaviour
     public UnityEvent OnStoppedJump;
     public FloatEvent OnMove;
 
+
+    [SerializeField] EventEntry[] _events;
 
     // Start is called before the first frame update
     void Start()
