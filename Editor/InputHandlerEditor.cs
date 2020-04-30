@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -6,89 +7,81 @@ using UnityEngine.Events;
 using UnityEditor;
 using System.Linq;
 
-#if true
-[CustomPropertyDrawer(typeof(EventEntry))]
-public class EventEntryDrawer : PropertyDrawer
-{
-    private Rect _position;
-    private const int _lineHeight = 16;
-    private int _totalPropertyHeight = 0;
-    private int _marginBetweenFields;
-
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
-        _position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), GUIContent.none);
-        _position.height = _lineHeight;
-        _totalPropertyHeight = _lineHeight;
-
-        _marginBetweenFields = (int)EditorGUIUtility.standardVerticalSpacing;
-
-        //EditorGUI.BeginProperty(position, label, property);
-
-        // Don't make child fields be indented
-        DisplayPropertyField(property.FindPropertyRelative("requiredState"));
-        DisplayPropertyField(property.FindPropertyRelative("actionName"));
-        DisplayPropertyField(property.FindPropertyRelative("_eventArgumentType"));
-        Debug.Log(property.FindPropertyRelative("_assignedEvent"));
-        DisplayPropertyField(property.FindPropertyRelative("_assignedEvent"), true);
-
-        //EditorGUI.EndProperty();
-    }
-
-    private void DisplayPropertyField(SerializedProperty property, bool spaceBelow = true) {
-        EditorGUI.PropertyField(_position, property, true);
- 
-        if (spaceBelow)
-        {
-            AddToPositionY(_lineHeight + _marginBetweenFields);
-        }
-    }
- 
-    private void AddToPositionY(int addY) {
-        _position.y += addY;
-        _totalPropertyHeight += addY;
-    }
- 
-    public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
-        return _totalPropertyHeight + _lineHeight / 2;
-    }
-}
-#endif
-
-/*[CustomEditor(typeof(InputHandler))]
+[CustomEditor(typeof(InputHandler))]
 public class InputHandlerEditor : Editor
 {
     private SerializedProperty _playerInputProp;
     private SerializedProperty _eventsProp;
-    private SerializedProperty _keyProp;
 
     private string[] _availableActionsNames;
     private int _selectedAction = 0;
 
+    // Foldouts
+    private bool _eventsArrayUnfolded = false;
+    private bool[] _eventsUnfolded;
+
+
     private void OnEnable() {
         _playerInputProp = serializedObject.FindProperty("_playerInput");
         _eventsProp = serializedObject.FindProperty("_events");
-        _keyProp = serializedObject.FindProperty("_key");
 
         PlayerInput playerInput = _playerInputProp.objectReferenceValue as PlayerInput;
         _availableActionsNames = playerInput.actions.FindActionMap(playerInput.defaultActionMap, false).actions.Select(a => a.name).ToArray();
     }
 
     public override void OnInspectorGUI() {
-        base.DrawDefaultInspector();
-        /*serializedObject.Update();
-        EditorGUILayout.LabelField("Input Asset", EditorStyles.boldLabel);
+        serializedObject.Update();
+
+        EditorGUILayout.LabelField("Needed Assets", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(_playerInputProp);
+        EditorGUILayout.Space(15);
 
-        if (_playerInputProp != null) {
-            EditorGUILayout.Space(15);
-            _selectedAction = EditorGUILayout.Popup("Action Name", _selectedAction, _availableActionsNames);
+        // Is the events foldout open?
+        _eventsArrayUnfolded = EditorGUILayout.Foldout(_eventsArrayUnfolded, "Events", EditorStyles.foldoutHeader);
 
-            EditorGUILayout.Space(15);
-            EditorGUILayout.PropertyField(_eventsProp);
+        if (_eventsArrayUnfolded) {
+            using (new EditorGUI.IndentLevelScope()) {
+                // Size of the events array
+                _eventsProp.arraySize = EditorGUILayout.IntField("Size", _eventsProp.arraySize);
+
+                EditorGUILayout.Space(10);
+                for (int i = 0; i < _eventsProp.arraySize; i++) {
+                    // Space in-between events
+                    if (i != 0) {
+                        EditorGUILayout.Space(5);
+                    }
+                    SerializedProperty property = _eventsProp.GetArrayElementAtIndex(i);
+
+                    SerializedProperty actionName = property.FindPropertyRelative("actionName");
+
+                    EditorGUILayout.LabelField("Event: " + actionName.stringValue);
+                    using (new EditorGUI.IndentLevelScope()) {
+                        EditorGUILayout.Space(2);
+
+                        // Name of action
+                        _selectedAction = EditorGUILayout.Popup("Action Name", _selectedAction, _availableActionsNames);
+                        actionName.stringValue = _availableActionsNames[_selectedAction];
+
+                        // Event parameters
+                        EditorGUILayout.PropertyField(property.FindPropertyRelative("requiredState"), true);
+                        EditorGUILayout.PropertyField(property.FindPropertyRelative("_eventArgumentType"), true);
+
+                        // Display unity event
+                        switch ((EventArgumentType)property.FindPropertyRelative("_eventArgumentType").enumValueIndex) {
+                            case EventArgumentType.Float:
+                                EditorGUILayout.PropertyField(property.FindPropertyRelative("_floatEvent"), true);
+                                break;
+                            default:
+                                EditorGUILayout.PropertyField(property.FindPropertyRelative("_unityEvent"), true);
+                                break;
+                        }
+                    }
+                }
+            }
         }
 
         if (serializedObject.ApplyModifiedProperties()) {
             Repaint();
         }
     }
-}*/
+}

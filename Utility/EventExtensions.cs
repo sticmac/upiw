@@ -13,7 +13,6 @@ public enum EventArgumentType {
 [Serializable]
 public class FloatEvent : UnityEvent<float> {}
 
-
 public static class EventFactory {
     public static UnityEvent GetEventWithArgumentType(EventArgumentType argumentType) {
         switch (argumentType) {
