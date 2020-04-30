@@ -49,9 +49,6 @@ public class InputHandlerEditor : Editor
                 EditorGUILayout.Space(10);
                 for (int i = 0; i < _eventsProp.arraySize; i++) {
                     // Space in-between events
-                    if (i != 0) {
-                        EditorGUILayout.Space(5);
-                    }
                     SerializedProperty property = _eventsProp.GetArrayElementAtIndex(i);
 
                     SerializedProperty actionName = property.FindPropertyRelative("actionName");
