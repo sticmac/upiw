@@ -14,7 +14,6 @@ public class InputHandlerEditor : Editor
     private SerializedProperty _eventsProp;
 
     private string[] _availableActionsNames;
-    private int _selectedAction = 0;
 
     // Foldouts
     private bool _eventsArrayUnfolded = false;
@@ -27,6 +26,8 @@ public class InputHandlerEditor : Editor
 
         PlayerInput playerInput = _playerInputProp.objectReferenceValue as PlayerInput;
         _availableActionsNames = playerInput.actions.FindActionMap(playerInput.defaultActionMap, false).actions.Select(a => a.name).ToArray();
+
+        _eventsUnfolded = new bool[_eventsProp.arraySize];
     }
 
     public override void OnInspectorGUI() {
@@ -43,6 +44,7 @@ public class InputHandlerEditor : Editor
             using (new EditorGUI.IndentLevelScope()) {
                 // Size of the events array
                 _eventsProp.arraySize = EditorGUILayout.IntField("Size", _eventsProp.arraySize);
+                Array.Resize(ref _eventsUnfolded, _eventsProp.arraySize);
 
                 EditorGUILayout.Space(10);
                 for (int i = 0; i < _eventsProp.arraySize; i++) {
@@ -54,26 +56,30 @@ public class InputHandlerEditor : Editor
 
                     SerializedProperty actionName = property.FindPropertyRelative("actionName");
 
-                    EditorGUILayout.LabelField("Event: " + actionName.stringValue);
-                    using (new EditorGUI.IndentLevelScope()) {
-                        EditorGUILayout.Space(2);
+                    //EditorGUILayout.LabelField("Event: " + actionName.stringValue);
+                    _eventsUnfolded[i] = EditorGUILayout.Foldout(_eventsUnfolded[i], "Event: " + actionName.stringValue);
+                    if (_eventsUnfolded[i]) {
+                        using (new EditorGUI.IndentLevelScope()) {
+                            EditorGUILayout.Space(2);
 
-                        // Name of action
-                        _selectedAction = EditorGUILayout.Popup("Action Name", _selectedAction, _availableActionsNames);
-                        actionName.stringValue = _availableActionsNames[_selectedAction];
+                            // Name of action
+                            int selectedAction = EditorGUILayout.Popup("Action Name",
+                                Array.IndexOf(_availableActionsNames, actionName.stringValue), _availableActionsNames);
+                            actionName.stringValue = _availableActionsNames[selectedAction];
 
-                        // Event parameters
-                        EditorGUILayout.PropertyField(property.FindPropertyRelative("requiredState"), true);
-                        EditorGUILayout.PropertyField(property.FindPropertyRelative("_eventArgumentType"), true);
+                            // Event parameters
+                            EditorGUILayout.PropertyField(property.FindPropertyRelative("requiredState"), true);
+                            EditorGUILayout.PropertyField(property.FindPropertyRelative("_eventArgumentType"), true);
 
-                        // Display unity event
-                        switch ((EventArgumentType)property.FindPropertyRelative("_eventArgumentType").enumValueIndex) {
-                            case EventArgumentType.Float:
-                                EditorGUILayout.PropertyField(property.FindPropertyRelative("_floatEvent"), true);
-                                break;
-                            default:
-                                EditorGUILayout.PropertyField(property.FindPropertyRelative("_unityEvent"), true);
-                                break;
+                            // Display unity event
+                            switch ((EventArgumentType)property.FindPropertyRelative("_eventArgumentType").enumValueIndex) {
+                                case EventArgumentType.Float:
+                                    EditorGUILayout.PropertyField(property.FindPropertyRelative("_floatEvent"), true);
+                                    break;
+                                default:
+                                    EditorGUILayout.PropertyField(property.FindPropertyRelative("_unityEvent"), true);
+                                    break;
+                            }
                         }
                     }
                 }
