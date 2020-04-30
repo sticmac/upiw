@@ -38,7 +38,7 @@ public class InputHandlerEditor : Editor
         EditorGUILayout.Space(15);
 
         // Is the events foldout open?
-        _eventsArrayUnfolded = EditorGUILayout.Foldout(_eventsArrayUnfolded, "Events", EditorStyles.foldoutHeader);
+        _eventsArrayUnfolded = EditorGUILayout.Foldout(_eventsArrayUnfolded, "Input Action Events", EditorStyles.foldoutHeader);
 
         if (_eventsArrayUnfolded) {
             using (new EditorGUI.IndentLevelScope()) {
@@ -57,7 +57,7 @@ public class InputHandlerEditor : Editor
                     SerializedProperty actionName = property.FindPropertyRelative("actionName");
 
                     //EditorGUILayout.LabelField("Event: " + actionName.stringValue);
-                    _eventsUnfolded[i] = EditorGUILayout.Foldout(_eventsUnfolded[i], "Event: " + actionName.stringValue);
+                    _eventsUnfolded[i] = EditorGUILayout.Foldout(_eventsUnfolded[i], "Action: " + actionName.stringValue);
                     if (_eventsUnfolded[i]) {
                         using (new EditorGUI.IndentLevelScope()) {
                             EditorGUILayout.Space(2);
