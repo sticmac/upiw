@@ -51,25 +51,27 @@ public class InputHandlerEditor : Editor
                     // Space in-between events
                     SerializedProperty property = _eventsProp.GetArrayElementAtIndex(i);
 
-                    SerializedProperty actionName = property.FindPropertyRelative("actionName");
+                    SerializedProperty actionNameProp = property.FindPropertyRelative("_actionName");
 
                     //EditorGUILayout.LabelField("Event: " + actionName.stringValue);
-                    _eventsUnfolded[i] = EditorGUILayout.Foldout(_eventsUnfolded[i], "Action: " + actionName.stringValue);
+                    _eventsUnfolded[i] = EditorGUILayout.Foldout(_eventsUnfolded[i], "Action: " + actionNameProp.stringValue);
                     if (_eventsUnfolded[i]) {
                         using (new EditorGUI.IndentLevelScope()) {
                             EditorGUILayout.Space(2);
 
                             // Name of action
+                            int lastSelectedAction = Array.IndexOf(_availableActionsNames, actionNameProp.stringValue);
                             int selectedAction = EditorGUILayout.Popup("Action Name",
-                                Array.IndexOf(_availableActionsNames, actionName.stringValue), _availableActionsNames);
-                            actionName.stringValue = _availableActionsNames[selectedAction];
+                                lastSelectedAction >= 0 ? lastSelectedAction : 0, _availableActionsNames);
+                            actionNameProp.stringValue = _availableActionsNames[selectedAction];
 
                             // Event parameters
-                            EditorGUILayout.PropertyField(property.FindPropertyRelative("requiredState"), true);
-                            EditorGUILayout.PropertyField(property.FindPropertyRelative("_eventArgumentType"), true);
+                            EditorGUILayout.PropertyField(property.FindPropertyRelative("_requiredState"), true);
+                            SerializedProperty eventArgumentTypeProp = property.FindPropertyRelative("_eventArgumentType");
+                            EditorGUILayout.PropertyField(eventArgumentTypeProp, true);
 
                             // Display unity event
-                            switch ((EventArgumentType)property.FindPropertyRelative("_eventArgumentType").enumValueIndex) {
+                            switch ((EventArgumentType)eventArgumentTypeProp.enumValueIndex) {
                                 case EventArgumentType.Float:
                                     EditorGUILayout.PropertyField(property.FindPropertyRelative("_floatEvent"), true);
                                     break;

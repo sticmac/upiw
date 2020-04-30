@@ -18,19 +18,33 @@ public enum RequiredState {
 [Serializable]
 public class EventEntry {
 
-    public RequiredState requiredState;
-    public string actionName;
-
+    [SerializeField] RequiredState _requiredState;
+    [SerializeField] string _actionName;
     [SerializeField] EventArgumentType _eventArgumentType;
-
     [SerializeField] UnityEvent _unityEvent;
     [SerializeField] FloatEvent _floatEvent;
 
     public EventEntry(string actionName, RequiredState requiredState, EventArgumentType eventArgumentType) {
-        this.requiredState = requiredState;
-        this.actionName = actionName;
+        this._requiredState = requiredState;
+        this._actionName = actionName;
         this._eventArgumentType = eventArgumentType;
     }
+
+    public RequiredState RequiredState => _requiredState;
+    public string ActionName => _actionName;
+    public EventArgumentType EventArgumentType => _eventArgumentType;
+    public UnityEvent UnityEvent { get {
+        if (_eventArgumentType == EventArgumentType.None)
+            return _unityEvent;
+        else
+            throw new InvalidOperationException("Calling event of wrong type.");
+    }}
+    public FloatEvent FloatEvent { get {
+        if (_eventArgumentType == EventArgumentType.Float)
+            return _floatEvent;
+        else
+            throw new InvalidOperationException("Calling event of wrong type.");
+    }}
 }
 
 public class InputHandler : MonoBehaviour
@@ -40,15 +54,31 @@ public class InputHandler : MonoBehaviour
 
     [SerializeField] EventEntry[] _events;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-
+    private void OnEnable() {
+        _playerInput.onActionTriggered += HandleInput;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+    private void OnDisable() {
+        _playerInput.onActionTriggered -= HandleInput;
+    }
+
+    private void HandleInput(InputAction.CallbackContext context) {
+        _events.Where(e => e.ActionName == context.action.name).ToList().ForEach(
+            e => {
+                if ((e.RequiredState == RequiredState.Started && context.started)
+                    || (e.RequiredState == RequiredState.Performed && context.performed)
+                    || (e.RequiredState == RequiredState.Canceled && context.canceled)
+                    || e.RequiredState == RequiredState.Any) {
+                        switch(e.EventArgumentType) {
+                            case (EventArgumentType.Float):
+                                e.FloatEvent?.Invoke(context.ReadValue<float>());
+                                break;
+                            default:
+                                e.UnityEvent?.Invoke();
+                                break;
+                        }
+                    }
+            }
+        );
     }
 }
