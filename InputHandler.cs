@@ -33,18 +33,15 @@ public class EventEntry {
     public RequiredState RequiredState => _requiredState;
     public string ActionName => _actionName;
     public EventArgumentType EventArgumentType => _eventArgumentType;
-    public UnityEvent UnityEvent { get {
-        if (_eventArgumentType == EventArgumentType.None)
-            return _unityEvent;
-        else
-            throw new InvalidOperationException("Calling event of wrong type.");
-    }}
-    public FloatEvent FloatEvent { get {
-        if (_eventArgumentType == EventArgumentType.Float)
-            return _floatEvent;
-        else
-            throw new InvalidOperationException("Calling event of wrong type.");
-    }}
+    public UnityEventBase Event {
+        get {
+            if (_eventArgumentType == EventArgumentType.Float) {
+                return _floatEvent;
+            } else {
+                return _unityEvent;
+            }
+        }
+    }
 }
 
 public class InputHandler : MonoBehaviour
@@ -71,10 +68,10 @@ public class InputHandler : MonoBehaviour
                     || e.RequiredState == RequiredState.Any) {
                         switch(e.EventArgumentType) {
                             case (EventArgumentType.Float):
-                                e.FloatEvent?.Invoke(context.ReadValue<float>());
+                                ((FloatEvent)e.Event)?.Invoke(context.ReadValue<float>());
                                 break;
                             default:
-                                e.UnityEvent?.Invoke();
+                                ((UnityEvent)e.Event)?.Invoke();
                                 break;
                         }
                     }
