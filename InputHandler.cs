@@ -60,22 +60,22 @@ public class InputHandler : MonoBehaviour
     }
 
     private void HandleInput(InputAction.CallbackContext context) {
-        _events.Where(e => e.ActionName == context.action.name).ToList().ForEach(
-            e => {
-                if ((e.RequiredState == RequiredState.Started && context.started)
-                    || (e.RequiredState == RequiredState.Performed && context.performed)
-                    || (e.RequiredState == RequiredState.Canceled && context.canceled)
-                    || e.RequiredState == RequiredState.Any) {
-                        switch(e.EventArgumentType) {
-                            case (EventArgumentType.Float):
-                                ((FloatEvent)e.Event)?.Invoke(context.ReadValue<float>());
-                                break;
-                            default:
-                                ((UnityEvent)e.Event)?.Invoke();
-                                break;
-                        }
+        _events.Where(e => e.ActionName == context.action.name)
+            .Where(e => (e.RequiredState == RequiredState.Started && context.started)
+                || (e.RequiredState == RequiredState.Performed && context.performed)
+                || (e.RequiredState == RequiredState.Canceled && context.canceled)
+                || e.RequiredState == RequiredState.Any)
+            .ToList().ForEach(
+                e => {
+                    switch (e.EventArgumentType)
+                    {
+                        case (EventArgumentType.Float):
+                            ((FloatEvent)e.Event)?.Invoke(context.ReadValue<float>());
+                            break;
+                        default:
+                            ((UnityEvent)e.Event)?.Invoke();
+                            break;
                     }
-            }
-        );
+                });
     }
 }
