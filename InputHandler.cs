@@ -11,7 +11,7 @@ public class InputHandler : MonoBehaviour
 
     [SerializeField] PlayerInput _playerInput;
 
-    [SerializeField] EventEntry[] _events;
+    [SerializeField] List<EventEntry> _events;
 
     private void OnEnable() {
         _playerInput.onActionTriggered += HandleInput;

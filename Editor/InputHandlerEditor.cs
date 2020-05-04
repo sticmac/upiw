@@ -39,6 +39,7 @@ public class InputHandlerEditor : Editor
         EditorGUILayout.PropertyField(_playerInputProp);
         EditorGUILayout.Space(15);
 
+        EditorGUILayout.LabelField("New Event", EditorStyles.boldLabel);
         using (new GUILayout.HorizontalScope()) {
             _lastSelectedArgType = (EventArgumentType)EditorGUILayout.EnumPopup(_lastSelectedArgType);
             if (GUILayout.Button("+")) {
@@ -78,9 +79,20 @@ public class InputHandlerEditor : Editor
                     SerializedProperty property = _eventsProp.GetArrayElementAtIndex(i);
                     SerializedObject eventSo = new SerializedObject(property.objectReferenceValue);
 
-                    eventSo.Update();
                     SerializedProperty actionNameProp = eventSo.FindProperty("_actionName");
-                    _eventsUnfolded[i] = EditorGUILayout.Foldout(_eventsUnfolded[i], "Action: " + actionNameProp.stringValue);
+                    using (new GUILayout.HorizontalScope()) {
+                        _eventsUnfolded[i] = EditorGUILayout.Foldout(_eventsUnfolded[i], "Action: " + actionNameProp.stringValue);
+                        EditorGUILayout.Space(15);
+                        if (GUILayout.Button("Delete")) {
+                            property.objectReferenceValue = null;
+                            _eventsProp.DeleteArrayElementAtIndex(i);
+                            _eventsUnfolded[i] = false;
+                            serializedObject.ApplyModifiedProperties();
+                            return;
+                        }
+                    }
+
+                    eventSo.Update();
                     if (_eventsUnfolded[i]) {
                         using (new EditorGUI.IndentLevelScope()) {
                             EditorGUILayout.Space(2);
@@ -93,8 +105,6 @@ public class InputHandlerEditor : Editor
 
                             // Event parameters
                             EditorGUILayout.PropertyField(eventSo.FindProperty("_requiredState"), true);
-                            SerializedProperty eventArgumentTypeProp = eventSo.FindProperty("_eventArgumentType");
-                            EditorGUILayout.PropertyField(eventArgumentTypeProp, true);
 
                             // Display unity event
                             SerializedProperty eventProp = eventSo.FindProperty("_event");
