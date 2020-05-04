@@ -40,27 +40,25 @@ public class InputHandlerEditor : Editor
         EditorGUILayout.Space(10);
 
         EditorGUILayout.LabelField("New Event", EditorStyles.boldLabel);
-        using (new GUILayout.HorizontalScope()) {
-            _lastSelectedArgType = (EventArgumentType)EditorGUILayout.EnumPopup(_lastSelectedArgType);
-            if (GUILayout.Button("+")) {
-                _eventsProp.InsertArrayElementAtIndex(0);
-                SerializedProperty newEventProp = _eventsProp.GetArrayElementAtIndex(0);
-                switch (_lastSelectedArgType) {
-                    case EventArgumentType.Float:
-                        newEventProp.objectReferenceValue = ScriptableObject.CreateInstance<FloatEventEntry>();
-                        break;
-                    default:
-                        newEventProp.objectReferenceValue = ScriptableObject.CreateInstance<UnityEventEntry>();
-                        break;
-                }
-                SerializedObject so = new SerializedObject(newEventProp.objectReferenceValue);
-                so.Update();
-                so.FindProperty("_actionName").stringValue = _availableActionsNames[0];
-                so.FindProperty("_requiredState").enumValueIndex = (int)RequiredState.Any;
-                so.ApplyModifiedProperties();
-
-                _eventsArrayUnfolded = true;
+        _lastSelectedArgType = (EventArgumentType)EditorGUILayout.EnumPopup("Argument Type", _lastSelectedArgType);
+        if (GUILayout.Button("Create New Event")) {
+            _eventsProp.InsertArrayElementAtIndex(0);
+            SerializedProperty newEventProp = _eventsProp.GetArrayElementAtIndex(0);
+            switch (_lastSelectedArgType) {
+                case EventArgumentType.Float:
+                    newEventProp.objectReferenceValue = ScriptableObject.CreateInstance<FloatEventEntry>();
+                    break;
+                default:
+                    newEventProp.objectReferenceValue = ScriptableObject.CreateInstance<UnityEventEntry>();
+                    break;
             }
+            SerializedObject so = new SerializedObject(newEventProp.objectReferenceValue);
+            so.Update();
+            so.FindProperty("_actionName").stringValue = _availableActionsNames[0];
+            so.FindProperty("_requiredState").enumValueIndex = (int)RequiredState.Any;
+            so.ApplyModifiedProperties();
+
+            _eventsArrayUnfolded = true;
         }
 
         EditorGUILayout.Space(5);
