@@ -19,6 +19,8 @@ public class InputHandlerEditor : Editor
     private bool _eventsArrayUnfolded = false;
     private bool[] _eventsUnfolded;
 
+    private EventArgumentType _lastSelectedArgType = EventArgumentType.None;
+
 
     private void OnEnable() {
         _playerInputProp = serializedObject.FindProperty("_playerInput");
@@ -37,6 +39,30 @@ public class InputHandlerEditor : Editor
         EditorGUILayout.PropertyField(_playerInputProp);
         EditorGUILayout.Space(15);
 
+        using (new GUILayout.HorizontalScope()) {
+            _lastSelectedArgType = (EventArgumentType)EditorGUILayout.EnumPopup(_lastSelectedArgType);
+            if (GUILayout.Button("+")) {
+                _eventsProp.InsertArrayElementAtIndex(0);
+                SerializedProperty newEventProp = _eventsProp.GetArrayElementAtIndex(0);
+                switch (_lastSelectedArgType) {
+                    case EventArgumentType.Float:
+                        newEventProp.objectReferenceValue = ScriptableObject.CreateInstance<FloatEventEntry>();
+                        break;
+                    default:
+                        newEventProp.objectReferenceValue = ScriptableObject.CreateInstance<UnityEventEntry>();
+                        break;
+                }
+                SerializedObject so = new SerializedObject(newEventProp.objectReferenceValue);
+                so.Update();
+                so.FindProperty("_actionName").stringValue = _availableActionsNames[0];
+                so.FindProperty("_requiredState").enumValueIndex = (int)RequiredState.Any;
+                so.FindProperty("_eventArgumentType").enumValueIndex = (int)_lastSelectedArgType;
+                so.ApplyModifiedProperties();
+
+                _eventsArrayUnfolded = true;
+            }
+        }
+
         // Is the events foldout open?
         _eventsArrayUnfolded = EditorGUILayout.Foldout(_eventsArrayUnfolded, "Input Action Events", EditorStyles.foldoutHeader);
 
@@ -50,10 +76,10 @@ public class InputHandlerEditor : Editor
                 for (int i = 0; i < _eventsProp.arraySize; i++) {
                     // Space in-between events
                     SerializedProperty property = _eventsProp.GetArrayElementAtIndex(i);
+                    SerializedObject eventSo = new SerializedObject(property.objectReferenceValue);
 
-                    SerializedProperty actionNameProp = property.FindPropertyRelative("_actionName");
-
-                    //EditorGUILayout.LabelField("Event: " + actionName.stringValue);
+                    eventSo.Update();
+                    SerializedProperty actionNameProp = eventSo.FindProperty("_actionName");
                     _eventsUnfolded[i] = EditorGUILayout.Foldout(_eventsUnfolded[i], "Action: " + actionNameProp.stringValue);
                     if (_eventsUnfolded[i]) {
                         using (new EditorGUI.IndentLevelScope()) {
@@ -66,21 +92,16 @@ public class InputHandlerEditor : Editor
                             actionNameProp.stringValue = _availableActionsNames[selectedAction];
 
                             // Event parameters
-                            EditorGUILayout.PropertyField(property.FindPropertyRelative("_requiredState"), true);
-                            SerializedProperty eventArgumentTypeProp = property.FindPropertyRelative("_eventArgumentType");
+                            EditorGUILayout.PropertyField(eventSo.FindProperty("_requiredState"), true);
+                            SerializedProperty eventArgumentTypeProp = eventSo.FindProperty("_eventArgumentType");
                             EditorGUILayout.PropertyField(eventArgumentTypeProp, true);
 
                             // Display unity event
-                            switch ((EventArgumentType)eventArgumentTypeProp.enumValueIndex) {
-                                case EventArgumentType.Float:
-                                    EditorGUILayout.PropertyField(property.FindPropertyRelative("_floatEvent"), true);
-                                    break;
-                                default:
-                                    EditorGUILayout.PropertyField(property.FindPropertyRelative("_unityEvent"), true);
-                                    break;
-                            }
+                            SerializedProperty eventProp = eventSo.FindProperty("_event");
+                            EditorGUILayout.PropertyField(eventSo.FindProperty("_event"), true);
                         }
                     }
+                    eventSo.ApplyModifiedProperties();
                 }
             }
         }
