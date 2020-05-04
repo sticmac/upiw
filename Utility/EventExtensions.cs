@@ -5,10 +5,4 @@ using UnityEngine;
 using UnityEngine.Events;
 
 [Serializable]
-public enum EventArgumentType {
-    None,
-    Float
-}
-
-[Serializable]
 public class FloatEvent : UnityEvent<float> {}

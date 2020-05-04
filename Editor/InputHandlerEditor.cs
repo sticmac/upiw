@@ -19,8 +19,8 @@ public class InputHandlerEditor : Editor
     private bool _eventsArrayUnfolded = false;
     private bool[] _eventsUnfolded;
 
-    private EventArgumentType _lastSelectedArgType = EventArgumentType.None;
-
+    private Dictionary<string, Type> _argTypeToEventEntry = new Dictionary<string, Type>();
+    private int _lastSelectedArgTypeIndex = 0;
 
     private void OnEnable() {
         _playerInputProp = serializedObject.FindProperty("_playerInput");
@@ -30,6 +30,11 @@ public class InputHandlerEditor : Editor
         _availableActionsNames = playerInput.actions.FindActionMap(playerInput.defaultActionMap, false).actions.Select(a => a.name).ToArray();
 
         _eventsUnfolded = new bool[_eventsProp.arraySize];
+        
+        // Associate labels with event entries
+        _argTypeToEventEntry.Clear();
+        _argTypeToEventEntry.Add("None", typeof(UnityEventEntry));
+        _argTypeToEventEntry.Add("Float", typeof(FloatEventEntry));
     }
 
     public override void OnInspectorGUI() {
@@ -40,18 +45,14 @@ public class InputHandlerEditor : Editor
         EditorGUILayout.Space(10);
 
         EditorGUILayout.LabelField("New Event", EditorStyles.boldLabel);
-        _lastSelectedArgType = (EventArgumentType)EditorGUILayout.EnumPopup("Argument Type", _lastSelectedArgType);
+        _lastSelectedArgTypeIndex = EditorGUILayout.Popup(_lastSelectedArgTypeIndex, _argTypeToEventEntry.Keys.ToArray());
         if (GUILayout.Button("Create New Event")) {
             _eventsProp.InsertArrayElementAtIndex(0);
             SerializedProperty newEventProp = _eventsProp.GetArrayElementAtIndex(0);
-            switch (_lastSelectedArgType) {
-                case EventArgumentType.Float:
-                    newEventProp.objectReferenceValue = ScriptableObject.CreateInstance<FloatEventEntry>();
-                    break;
-                default:
-                    newEventProp.objectReferenceValue = ScriptableObject.CreateInstance<UnityEventEntry>();
-                    break;
-            }
+
+            string key = _argTypeToEventEntry.Keys.ToArray()[_lastSelectedArgTypeIndex];
+            newEventProp.objectReferenceValue = ScriptableObject.CreateInstance(_argTypeToEventEntry[key]);
+
             SerializedObject so = new SerializedObject(newEventProp.objectReferenceValue);
             so.Update();
             so.FindProperty("_actionName").stringValue = _availableActionsNames[0];
@@ -67,7 +68,6 @@ public class InputHandlerEditor : Editor
 
         if (_eventsArrayUnfolded) {
             using (new EditorGUI.IndentLevelScope()) {
-                // Size of the events array
                 _eventsProp.arraySize = EditorGUILayout.IntField("Size", _eventsProp.arraySize);
                 Array.Resize(ref _eventsUnfolded, _eventsProp.arraySize);
 
