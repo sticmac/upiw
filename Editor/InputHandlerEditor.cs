@@ -77,26 +77,16 @@ public class InputHandlerEditor : Editor
 
                     SerializedProperty actionNameProp = eventSo.FindProperty("_actionName");
                     SerializedProperty requiredStateProp = eventSo.FindProperty("_requiredState");
-                    using (new GUILayout.HorizontalScope()) {
-                        _eventsUnfolded[i] = EditorGUILayout.Foldout(_eventsUnfolded[i],
-                            $"Action: {actionNameProp.stringValue} {requiredStateProp.enumDisplayNames[requiredStateProp.enumValueIndex]}");
-                        EditorGUILayout.Space(15);
+                    if (!_eventsUnfolded[i]) {
+                        DrawFoldout(i, $"{actionNameProp.stringValue} {requiredStateProp.enumDisplayNames[requiredStateProp.enumValueIndex]}");
+                    } else {
+                        EditorGUILayout.BeginVertical("Box");
+                        DrawFoldout(i, $"{actionNameProp.stringValue} {requiredStateProp.enumDisplayNames[requiredStateProp.enumValueIndex]}");
+                        EditorGUILayout.Space(10);
+                        // Editing the actual event entry as a serialized object
+                        eventSo.Update();
 
-                        // Deletes the current event
-                        if (GUILayout.Button("Delete")) {
-                            property.objectReferenceValue = null;
-                            _eventsProp.DeleteArrayElementAtIndex(i);
-                            _eventsUnfolded[i] = false;
-                            serializedObject.ApplyModifiedProperties();
-                            return;
-                        }
-                    }
-
-                    // Editing the actual event entry as a serialized object
-                    eventSo.Update();
-                    if (_eventsUnfolded[i]) {
                         using (new EditorGUI.IndentLevelScope()) {
-                            EditorGUILayout.BeginVertical("Box");
                             EditorGUILayout.Space(2);
 
                             // Name of action
@@ -109,17 +99,36 @@ public class InputHandlerEditor : Editor
                             EditorGUILayout.PropertyField(eventSo.FindProperty("_requiredState"), true);
 
                             // Display unity event
+                            EditorGUILayout.Space(5);
                             EditorGUILayout.PropertyField(eventSo.FindProperty("_event"), true);
-                            EditorGUILayout.EndVertical();
                         }
+
+                        EditorGUILayout.EndVertical();
+                        EditorGUILayout.Space(5);
+                        eventSo.ApplyModifiedProperties();
                     }
-                    eventSo.ApplyModifiedProperties();
                 }
             }
         }
 
         if (serializedObject.ApplyModifiedProperties()) {
             Repaint();
+        }
+    }
+
+    private void DrawFoldout(int i, string label) {
+        using (new GUILayout.HorizontalScope())
+        {
+            _eventsUnfolded[i] = EditorGUILayout.Foldout(_eventsUnfolded[i], label);
+            EditorGUILayout.Space(15);
+
+            // Deletes the current event
+            if (GUILayout.Button("Delete"))
+            {
+                _eventsProp.DeleteArrayElementAtIndex(i);
+                _eventsProp.DeleteArrayElementAtIndex(i);
+                _eventsUnfolded[i] = false;
+            }
         }
     }
 }
