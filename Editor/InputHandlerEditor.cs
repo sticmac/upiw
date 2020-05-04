@@ -57,7 +57,6 @@ public class InputHandlerEditor : Editor
                 so.Update();
                 so.FindProperty("_actionName").stringValue = _availableActionsNames[0];
                 so.FindProperty("_requiredState").enumValueIndex = (int)RequiredState.Any;
-                so.FindProperty("_eventArgumentType").enumValueIndex = (int)_lastSelectedArgType;
                 so.ApplyModifiedProperties();
 
                 _eventsArrayUnfolded = true;
@@ -80,8 +79,10 @@ public class InputHandlerEditor : Editor
                     SerializedObject eventSo = new SerializedObject(property.objectReferenceValue);
 
                     SerializedProperty actionNameProp = eventSo.FindProperty("_actionName");
+                    SerializedProperty requiredStateProp = eventSo.FindProperty("_requiredState");
                     using (new GUILayout.HorizontalScope()) {
-                        _eventsUnfolded[i] = EditorGUILayout.Foldout(_eventsUnfolded[i], "Action: " + actionNameProp.stringValue);
+                        _eventsUnfolded[i] = EditorGUILayout.Foldout(_eventsUnfolded[i],
+                            $"Action: {actionNameProp.stringValue} {requiredStateProp.enumDisplayNames[requiredStateProp.enumValueIndex]}");
                         EditorGUILayout.Space(15);
                         if (GUILayout.Button("Delete")) {
                             property.objectReferenceValue = null;

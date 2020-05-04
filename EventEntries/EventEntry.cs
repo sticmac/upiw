@@ -16,11 +16,9 @@ public abstract class EventEntry : ScriptableObject {
 
     [SerializeField] protected RequiredState _requiredState;
     [SerializeField] protected string _actionName;
-    [SerializeField] protected EventArgumentType _eventArgumentType;
 
     public RequiredState RequiredState => _requiredState;
     public string ActionName => _actionName;
-    public EventArgumentType EventArgumentType => _eventArgumentType;
 
     public abstract void Invoke(InputAction.CallbackContext context);
 }
