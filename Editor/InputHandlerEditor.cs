@@ -45,7 +45,7 @@ public class InputHandlerEditor : Editor
         EditorGUILayout.Space(10);
 
         EditorGUILayout.LabelField("New Event", EditorStyles.boldLabel);
-        _lastSelectedArgTypeIndex = EditorGUILayout.Popup(_lastSelectedArgTypeIndex, _argTypeToEventEntry.Keys.ToArray());
+        _lastSelectedArgTypeIndex = EditorGUILayout.Popup("Argument Type", _lastSelectedArgTypeIndex, _argTypeToEventEntry.Keys.ToArray());
         if (GUILayout.Button("Create New Event")) {
             _eventsProp.InsertArrayElementAtIndex(0);
             SerializedProperty newEventProp = _eventsProp.GetArrayElementAtIndex(0);
@@ -67,9 +67,8 @@ public class InputHandlerEditor : Editor
         _eventsArrayUnfolded = EditorGUILayout.Foldout(_eventsArrayUnfolded, "Input Action Events", EditorStyles.foldoutHeader);
 
         if (_eventsArrayUnfolded) {
+            Array.Resize(ref _eventsUnfolded, _eventsProp.arraySize);
             using (new EditorGUI.IndentLevelScope()) {
-                _eventsProp.arraySize = EditorGUILayout.IntField("Size", _eventsProp.arraySize);
-                Array.Resize(ref _eventsUnfolded, _eventsProp.arraySize);
 
                 EditorGUILayout.Space(10);
                 for (int i = 0; i < _eventsProp.arraySize; i++) {
