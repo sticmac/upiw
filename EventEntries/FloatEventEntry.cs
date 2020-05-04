@@ -6,8 +6,9 @@ using UnityEngine.InputSystem;
 public class FloatEventEntry : EventEntry<FloatEvent>
 {
     private void Awake() {
-        _event = new FloatEvent();    
-        Debug.Log(_event);
+        if (_event == null) {
+            _event = new FloatEvent();    
+        }
     }
 
     public override void Invoke(InputAction.CallbackContext context)

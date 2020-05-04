@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Events;
 
@@ -6,7 +7,9 @@ using UnityEngine.Events;
 public class UnityEventEntry : EventEntry<UnityEvent>
 {
     private void Awake() {
-        _event = new UnityEvent();
+        if (_event == null) {
+            _event = new UnityEvent();
+        }
     }
 
     public override void Invoke(InputAction.CallbackContext context)

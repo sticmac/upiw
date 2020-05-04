@@ -12,11 +12,6 @@ public enum RequiredState {
 }
 
 [Serializable]
-public abstract class EventEntry<T> : EventEntry where T : UnityEventBase {
-    [SerializeField] protected T _event;
-}
-
-[Serializable]
 public abstract class EventEntry : ScriptableObject {
 
     [SerializeField] protected RequiredState _requiredState;
@@ -28,4 +23,9 @@ public abstract class EventEntry : ScriptableObject {
     public EventArgumentType EventArgumentType => _eventArgumentType;
 
     public abstract void Invoke(InputAction.CallbackContext context);
+}
+
+[Serializable]
+public abstract class EventEntry<T> : EventEntry where T : UnityEventBase {
+    [SerializeField] protected T _event;
 }
