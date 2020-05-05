@@ -35,6 +35,7 @@ public class InputHandlerEditor : Editor
         _argTypeToEventEntry.Clear();
         _argTypeToEventEntry.Add("None", typeof(UnityEventEntry));
         _argTypeToEventEntry.Add("Float", typeof(FloatEventEntry));
+        _argTypeToEventEntry.Add("Vector2", typeof(Vector2EventEntry));
     }
 
     public override void OnInspectorGUI() {
